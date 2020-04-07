@@ -1,11 +1,13 @@
 cmake_minimum_required(VERSION 3.13)
 project(plainNES)
 
-#Location of Boost and SDL2
-set(BOOST_ROOT "C:/dev_libs/boost")
-set(SDL2_PATH "C:/dev_libs/SDL2")
-set(SDL2_TTF_PATH "C:/dev_libs/SDL2")
-set(CATCH2_PATH "C:/dev_libs/Catch2-master/single_include/")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Dependencies
+set(CATCH2_PATH "${CMAKE_SOURCE_DIR}/Catch2/single_include")
 
 #Use bin folder for output and lib folder for library output
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -13,29 +15,35 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 #Location of FindSDL2.cmake files
-set(CMAKE_MODULE_PATH cmake)
+set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
-#Needed to properly find Boost libraries
-set(Boost_ARCHITECTURE "-x32")
-
-find_package(Boost COMPONENTS chrono program_options REQUIRED)
 find_package(SDL2 REQUIRED)
-find_package(SDL2_ttf REQUIRED)
-find_package(OpenGL REQUIRED)
-
-include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${SDL2_INCLUDE_DIRS})
+
+find_package(SDL2_ttf REQUIRED)
 include_directories(${SDL2_TTF_INCLUDE_DIRS})
+
+find_package(OpenGL REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIR})
 
+find_package(ZLIB REQUIRED)
+
+find_package(GLM REQUIRED)
+include_directories(${GLM_INCLUDE_DIRS})
+link_directories(${GLM_LIBRARY_DIRS})
+add_definitions(${GLM_DEFINITIONS})
+
+
 #GLAD
-set(GLAD_DIR "C:/dev_libs/GLAD")
+set(GLAD_DIR ${CMAKE_SOURCE_DIR}/glad)
 add_library("glad" "${GLAD_DIR}/src/glad.c")
 target_include_directories("glad" PRIVATE "${GLAD_DIR}/include")
 include_directories("${GLAD_DIR}/include")
 
+IF (WIN32)
 set(GLM_DIR "C:/dev_libs/GLM")
 include_directories("${GLM_DIR}/include")
+ENDIF ()
 
 add_compile_definitions(IMGUI_IMPL_OPENGL_LOADER_GLAD)
 
@@ -60,7 +68,7 @@ target_sources(NES PRIVATE
                 src/Mapper/mapper3.cpp
                 src/Mapper/mapper4.cpp
                )
-target_include_directories(NES PRIVATE src)
+target_include_directories(NES PRIVATE src )
 
 #Main executable
 add_executable(plainNES
@@ -86,10 +94,8 @@ set_target_properties(ROMtests PROPERTIES RUNTIME_OUTPUT_DIRECTORY test)
 
 #Libraries for both executables
 #Unit tests not using GUI
-target_link_libraries(plainNES NES mingw32 SDL2 SDL2main ${SDL2_TTF_LIBRARIES} ${Boost_LIBRARIES} "glad" ${OPENGL_gl_LIBRARY} comdlg32)
-target_link_libraries(ROMtests NES mingw32)
-
-#Copy over Resources folder into bin
-add_custom_command(TARGET plainNES POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-    ${CMAKE_SOURCE_DIR}/Resources $<TARGET_FILE_DIR:plainNES>)
+IF (WIN32)
+  set(WINDOWS_LIBS mingw32 comdlg32)
+ENDIF()
+target_link_libraries(plainNES NES ${SDL2_LIBRARIES} ${SDL2_TTF_LIBRARIES} ZLIB::ZLIB "glad" ${OPENGL_gl_LIBRARY} ${CMAKE_DL_LIBS} ${WINDOWS_LIBS})
+target_link_libraries(ROMtests NES ZLIB::ZLIB ${WINDOWS_LIBS})

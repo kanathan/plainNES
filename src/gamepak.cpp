@@ -1,5 +1,5 @@
 #include "gamepak.h"
-#include "PPU.h"
+#include "ppu.h"
 #include "Mapper/mapper.h"
 #include "Mapper/mapper0.h"
 #include "Mapper/mapper1.h"
@@ -12,6 +12,7 @@
 #include <vector>
 #include <array>
 #include <math.h>
+#include <cmath>
 
 namespace GAMEPAK {
 

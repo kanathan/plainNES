@@ -1,6 +1,6 @@
 #pragma once
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <array>
 #include <functional>
 #include "shader.h"
@@ -11,11 +11,9 @@ class Display
 {
 public:
     Display();
-    Display(int width, int height, const char* title,
-        const char* vertexPath, const char* fragmentPath);
+    Display(int width, int height, const char* title);
     ~Display();
-    void init(int width, int height, const char* title,
-        const char* vertexPath, const char* fragmentPath);
+    void init(int width, int height, const char* title);
     
     //Load new texture into buffer
     void loadTexture(int width, int height, uint8_t *data);
